@@ -324,7 +324,7 @@ plugins/gemini/
 │   ├── gemini-companion.mjs      # Main CLI wrapper
 │   ├── session-lifecycle-hook.mjs # Session start/end handling
 │   ├── stop-review-gate-hook.mjs  # Stop-time review enforcement
-│   └── lib/                      # Reused modules from Codex
+│   └── lib/                      # Shared runtime modules
 └── skills/                       # Claude Code skills
 
 tests/
