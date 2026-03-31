@@ -91,6 +91,7 @@ export async function runTask(options = {}) {
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => {
         const err = new Error("Gemini prompt timed out");
+        // @ts-ignore
         err.code = "PROMPT_TIMEOUT";
         reject(err);
       }, timeoutMs)

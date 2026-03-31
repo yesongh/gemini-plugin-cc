@@ -66,7 +66,9 @@ export class AcpClient {
       this.#pending.delete(msg.id);
       if (msg.error) {
         const err = new Error(msg.error.message);
+        // @ts-ignore
         err.code = msg.error.code;
+        // @ts-ignore
         err.data = msg.error.data;
         pending.reject(err);
       } else {
@@ -79,7 +81,9 @@ export class AcpClient {
     if (this.#closed) return;
     this.#closed = true;
     const err = new Error(`ACP process exited unexpectedly (code ${code})`);
+    // @ts-ignore
     err.code = "ACP_PROCESS_EXIT";
+    // @ts-ignore
     err.exitCode = code;
     for (const { reject } of this.#pending.values()) {
       reject(err);

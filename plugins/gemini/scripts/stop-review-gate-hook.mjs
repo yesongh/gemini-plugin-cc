@@ -56,9 +56,9 @@ function buildStopReviewPrompt(input = {}) {
   });
 }
 
-function buildSetupNote(cwd) {
-  const authStatus = getGeminiLoginStatus(cwd);
-  if (authStatus.available && authStatus.loggedIn) {
+async function buildSetupNote() {
+  const authStatus = await getGeminiLoginStatus();
+  if (authStatus.loggedIn) {
     return null;
   }
 
@@ -139,7 +139,7 @@ function runStopReview(cwd, input = {}) {
   }
 }
 
-function main() {
+async function main() {
   const input = readHookInput();
   const cwd = input.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const workspaceRoot = resolveWorkspaceRoot(cwd);
@@ -156,7 +156,7 @@ function main() {
     return;
   }
 
-  const setupNote = buildSetupNote(cwd);
+  const setupNote = await buildSetupNote();
   if (setupNote) {
     logNote(setupNote);
     logNote(runningTaskNote);
@@ -175,4 +175,7 @@ function main() {
   logNote(runningTaskNote);
 }
 
-main();
+main().catch((error) => {
+  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.exit(1);
+});
