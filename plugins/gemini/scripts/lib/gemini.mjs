@@ -46,7 +46,6 @@ export async function getGeminiLoginStatus() {
  * @param {string} [options.logFile]
  * @param {Function} [options.onProgress]
  * @param {object} [options.env]
- * @param {number} [options.timeoutMs=120000]
  * @returns {Promise<{sessionId: string, output: string, stopReason: string}>}
  */
 // @ts-expect-error
@@ -60,7 +59,6 @@ export async function runTask(options = {}) {
     logFile,
     onProgress,
     env = process.env,
-    timeoutMs = 120000,
   } = options;
 
   let client, sessionId;
@@ -105,18 +103,7 @@ export async function runTask(options = {}) {
 
   let result;
   try {
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => {
-        const err = new Error("Gemini prompt timed out");
-        // @ts-expect-error
-        err.code = "PROMPT_TIMEOUT";
-        reject(err);
-      }, timeoutMs),
-    );
-    result = await Promise.race([
-      client.prompt(sessionId, [{ type: "text", text: prompt }]),
-      timeoutPromise,
-    ]);
+    result = await client.prompt(sessionId, [{ type: "text", text: prompt }]);
   } finally {
     removeUpdate();
     await client.shutdown();
@@ -140,7 +127,6 @@ export async function runTask(options = {}) {
  * @param {string} [options.logFile]
  * @param {Function} [options.onProgress]
  * @param {object} [options.env]
- * @param {number} [options.timeoutMs=300000]
  * @returns {Promise<{reviewResult: object, stopReason: string}>}
  */
 // @ts-expect-error
@@ -153,7 +139,6 @@ export async function runReview(options = {}) {
     logFile,
     onProgress,
     env = process.env,
-    timeoutMs = 300000,
   } = options;
 
   const reviewPrompt = buildReviewPrompt(reviewTarget, systemPrompt, focusText);
@@ -165,7 +150,6 @@ export async function runReview(options = {}) {
     logFile,
     onProgress,
     env,
-    timeoutMs,
   });
 
   appendLogBlock(logFile, "Review output", output);
