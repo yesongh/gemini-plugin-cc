@@ -20,28 +20,44 @@ Based on [`openai/codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), 
 
 ## Install
 
-### Local development
+Add the marketplace in Claude Code:
 
 ```bash
-claude --plugin-dir ./plugins/gemini
+/plugin marketplace add abiswas97/gemini-plugin-cc
 ```
 
-Or install permanently for this project:
+Install the plugin:
 
 ```bash
-node scripts/add-local-plugin.mjs
+/plugin install gemini@abiswas97-gemini
+```
+
+Reload plugins:
+
+```bash
 /reload-plugins
 ```
 
-### From a marketplace
+Then run:
 
 ```bash
-/plugin marketplace add your-org/gemini-plugin-cc
-/plugin install gemini@your-org-gemini
-/reload-plugins
+/gemini:setup
 ```
 
-Run `/gemini:setup` to verify everything is ready.
+`/gemini:setup` will tell you whether Gemini is ready. If Gemini is missing, refer to the [Gemini CLI installation guide](https://developers.google.com/gemini-cli).
+
+If Gemini is installed but not authenticated, set up your credentials:
+
+```bash
+!gcloud auth application-default login
+```
+
+Or set the `GOOGLE_API_KEY` environment variable with a key from [AI Studio](https://aistudio.google.com/app/apikey).
+
+After install, you should see:
+
+- the slash commands listed below
+- the `gemini:gemini-rescue` subagent in `/agents`
 
 ## Commands
 
