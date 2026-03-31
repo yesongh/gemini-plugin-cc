@@ -8,6 +8,7 @@ import {
   spawnAcpClient,
 } from "./acp-lifecycle.mjs";
 import { binaryAvailable, runCommand } from "./process.mjs";
+import { suggestAlternatives } from "./models.mjs";
 import { appendLogBlock, appendLogLine } from "./tracked-jobs.mjs";
 
 const PLUGIN_LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -104,10 +105,42 @@ export async function runTask(options = {}) {
   let result;
   try {
     result = await client.prompt(sessionId, [{ type: "text", text: prompt }]);
-  } finally {
+  } catch (err) {
     removeUpdate();
     await client.shutdown();
+
+    const msg = err?.message ?? String(err);
+    const isRateLimit = /429|RESOURCE_EXHAUSTED|capacity|rate.limit/i.test(msg);
+    if (isRateLimit) {
+      const modelLabel = model ?? "default";
+      const suggestions = suggestAlternatives(model);
+      const structured = new Error(
+        `Model "${modelLabel}" hit rate limits. Try: --model ${suggestions.join(" or --model ")}`,
+      );
+      structured.code = "RATE_LIMITED";
+      structured.model = modelLabel;
+      structured.suggestions = suggestions;
+      throw structured;
+    }
+
+    const isMalformed = /malformed function call/i.test(msg);
+    if (isMalformed) {
+      const modelLabel = model ?? "default";
+      const suggestions = suggestAlternatives(model);
+      const structured = new Error(
+        `Model "${modelLabel}" returned malformed output (not supported for ACP tasks). Try: --model ${suggestions.join(" or --model ")}`,
+      );
+      structured.code = "MODEL_UNAVAILABLE";
+      structured.model = modelLabel;
+      structured.suggestions = suggestions;
+      throw structured;
+    }
+
+    throw err;
   }
+
+  removeUpdate();
+  await client.shutdown();
 
   return {
     sessionId,
