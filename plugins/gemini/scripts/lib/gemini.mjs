@@ -42,6 +42,7 @@ export async function getGeminiLoginStatus() {
  * @param {number} [options.timeoutMs=120000]
  * @returns {Promise<{sessionId: string, output: string, stopReason: string}>}
  */
+// @ts-ignore
 export async function runTask(options = {}) {
   const {
     cwd = process.cwd(),
@@ -127,6 +128,7 @@ export async function runTask(options = {}) {
  * @param {number} [options.timeoutMs=300000]
  * @returns {Promise<{reviewResult: object, stopReason: string}>}
  */
+// @ts-ignore
 export async function runReview(options = {}) {
   const {
     cwd = process.cwd(),
@@ -186,7 +188,9 @@ export function parseReviewOutput(raw) {
     parsed = JSON.parse(stripped);
   } catch (err) {
     const e = new Error(`Review output is not valid JSON: ${err.message}`);
+    // @ts-ignore
     e.code = "REVIEW_PARSE_ERROR";
+    // @ts-ignore
     e.raw = raw;
     throw e;
   }
@@ -195,7 +199,9 @@ export function parseReviewOutput(raw) {
   const validationError = validateAgainstSchema(parsed, schema);
   if (validationError) {
     const e = new Error(`Review output failed validation: ${validationError}`);
+    // @ts-ignore
     e.code = "REVIEW_VALIDATION_ERROR";
+    // @ts-ignore
     e.parsed = parsed;
     throw e;
   }

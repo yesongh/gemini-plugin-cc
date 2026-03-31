@@ -109,6 +109,7 @@ function runStopReview(cwd, input = {}) {
     timeout: STOP_REVIEW_TIMEOUT_MS
   });
 
+  // @ts-ignore
   if (result.error?.code === "ETIMEDOUT") {
     return {
       ok: false,

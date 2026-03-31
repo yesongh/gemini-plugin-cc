@@ -16,6 +16,7 @@ export async function detectAcpFlag(binary = "gemini") {
   if (flagCache.has(binary)) return flagCache.get(binary);
 
   const result = runCommand(binary, ["--version"], { timeoutMs: 2000 });
+  /** @type {"--acp" | "--experimental-acp"} */
   let flag = "--acp";
 
   if (result.status === 0) {
