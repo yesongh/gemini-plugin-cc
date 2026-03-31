@@ -150,6 +150,5 @@ output/
 plugins/gemini/.generated/
 # CocoIndex Code (ccc)
 /.cocoindex_code/
-# Design research and internal planning
-docs/research.md
-docs/superpowers/
+# Internal docs (research, design notes)
+docs/
