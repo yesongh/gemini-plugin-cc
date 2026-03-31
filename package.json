@@ -1,6 +1,6 @@
 {
   "name": "@abiswas/gemini-plugin-cc",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Use Gemini CLI from Claude Code to review code or delegate tasks.",
