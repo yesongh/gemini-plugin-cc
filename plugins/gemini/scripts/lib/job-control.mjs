@@ -121,7 +121,7 @@ function inferLegacyJobPhase(job, progressPreview = []) {
 
   for (let index = progressPreview.length - 1; index >= 0; index -= 1) {
     const line = progressPreview[index].toLowerCase();
-    if (line.startsWith("starting codex") || line.startsWith("thread ready") || line.startsWith("turn started")) {
+    if (line.startsWith("starting gemini") || line.startsWith("thread ready") || line.startsWith("turn started")) {
       return "starting";
     }
     if (line.startsWith("reviewer started") || line.includes("review mode")) {
@@ -149,7 +149,7 @@ function inferLegacyJobPhase(job, progressPreview = []) {
     if (line.startsWith("turn completed")) {
       return "finalizing";
     }
-    if (line.startsWith("codex error:") || line.startsWith("failed:")) {
+    if (line.startsWith("gemini error:") || line.startsWith("failed:")) {
       return "failed";
     }
   }
@@ -302,5 +302,5 @@ export function resolveCancelableJob(cwd, reference) {
     throw new Error("Multiple Gemini jobs are active. Pass a job id to /gemini:cancel.");
   }
 
-  throw new Error("No active Codex jobs to cancel.");
+  throw new Error("No active Gemini jobs to cancel.");
 }
