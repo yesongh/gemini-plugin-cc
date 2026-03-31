@@ -1,0 +1,20 @@
+{
+  "SessionStart": [
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-lifecycle-hook.mjs\" SessionStart",
+      "timeout": 5
+    }
+  ],
+  "SessionEnd": [
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-lifecycle-hook.mjs\" SessionEnd",
+      "timeout": 5
+    }
+  ],
+  "Stop": [
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/stop-review-gate-hook.mjs\"",
+      "timeout": 900
+    }
+  ]
+}
