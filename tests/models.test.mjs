@@ -20,8 +20,8 @@ test("MODELS is frozen", () => {
   assert.ok(Object.isFrozen(MODELS));
 });
 
-test("DEFAULT_MODEL is FLASH_3", () => {
-  assert.equal(DEFAULT_MODEL, MODELS.FLASH_3);
+test("DEFAULT_MODEL is FLASH_2_5", () => {
+  assert.equal(DEFAULT_MODEL, MODELS.FLASH_2_5);
 });
 
 test("MODEL_ALIASES maps all expected aliases", () => {
