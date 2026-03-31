@@ -115,7 +115,7 @@ export async function runTask(options = {}) {
       const modelLabel = model ?? "default";
       const suggestions = suggestAlternatives(model);
       const structured = new Error(
-        `Model "${modelLabel}" hit rate limits. Try: --model ${suggestions.join(" or --model ")}`,
+        `Model "${modelLabel}" hit rate limits after retries.`,
       );
       structured.code = "RATE_LIMITED";
       structured.model = modelLabel;
@@ -128,7 +128,7 @@ export async function runTask(options = {}) {
       const modelLabel = model ?? "default";
       const suggestions = suggestAlternatives(model);
       const structured = new Error(
-        `Model "${modelLabel}" returned malformed output (not supported for ACP tasks). Try: --model ${suggestions.join(" or --model ")}`,
+        `Model "${modelLabel}" returned malformed output (not supported for ACP tasks).`,
       );
       structured.code = "MODEL_UNAVAILABLE";
       structured.model = modelLabel;
