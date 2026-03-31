@@ -46,7 +46,10 @@ test("resolveModel is case-insensitive", () => {
 });
 
 test("resolveModel passes through raw model IDs", () => {
-  assert.equal(resolveModel("gemini-3.1-pro-preview"), "gemini-3.1-pro-preview");
+  assert.equal(
+    resolveModel("gemini-3.1-pro-preview"),
+    "gemini-3.1-pro-preview",
+  );
 });
 
 test("resolveModel returns DEFAULT_MODEL for null/undefined/empty", () => {

@@ -7,8 +7,8 @@ import {
   resumeSession,
   spawnAcpClient,
 } from "./acp-lifecycle.mjs";
-import { binaryAvailable, runCommand } from "./process.mjs";
 import { suggestAlternatives } from "./models.mjs";
+import { binaryAvailable, runCommand } from "./process.mjs";
 import { appendLogBlock, appendLogLine } from "./tracked-jobs.mjs";
 
 const PLUGIN_LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -114,9 +114,9 @@ export async function runTask(options = {}) {
     if (isRateLimit) {
       const modelLabel = model ?? "default";
       const suggestions = suggestAlternatives(model);
-      const structured = /** @type {any} */ (new Error(
-        `Model "${modelLabel}" hit rate limits after retries.`,
-      ));
+      const structured = /** @type {any} */ (
+        new Error(`Model "${modelLabel}" hit rate limits after retries.`)
+      );
       structured.code = "RATE_LIMITED";
       structured.model = modelLabel;
       structured.suggestions = suggestions;
@@ -127,9 +127,11 @@ export async function runTask(options = {}) {
     if (isMalformed) {
       const modelLabel = model ?? "default";
       const suggestions = suggestAlternatives(model);
-      const structured = /** @type {any} */ (new Error(
-        `Model "${modelLabel}" returned malformed output (not supported for ACP tasks).`,
-      ));
+      const structured = /** @type {any} */ (
+        new Error(
+          `Model "${modelLabel}" returned malformed output (not supported for ACP tasks).`,
+        )
+      );
       structured.code = "MODEL_UNAVAILABLE";
       structured.model = modelLabel;
       structured.suggestions = suggestions;

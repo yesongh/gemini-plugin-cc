@@ -15,7 +15,6 @@ import {
   runReview,
   runTask,
 } from "./lib/gemini.mjs";
-import { resolveModel } from "./lib/models.mjs";
 import {
   collectReviewContext,
   ensureGitRepository,
@@ -28,6 +27,7 @@ import {
   resolveCancelableJob,
   resolveResultJob,
 } from "./lib/job-control.mjs";
+import { resolveModel } from "./lib/models.mjs";
 import { binaryAvailable, terminateProcessTree } from "./lib/process.mjs";
 import { interpolateTemplate, loadPromptTemplate } from "./lib/prompts.mjs";
 import {
@@ -84,7 +84,6 @@ function outputResult(value, asJson) {
 function outputCommandResult(payload, rendered, asJson) {
   outputResult(asJson ? payload : rendered, asJson);
 }
-
 
 function normalizeArgv(argv) {
   if (argv.length === 1) {

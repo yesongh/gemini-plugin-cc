@@ -1,17 +1,17 @@
 export const MODELS = Object.freeze({
   FLASH_2_5: "gemini-2.5-flash",
-  PRO_2_5:   "gemini-2.5-pro",
-  FLASH_3:   "gemini-3-flash-preview",
-  PRO_3:     "gemini-3-pro-preview",
+  PRO_2_5: "gemini-2.5-pro",
+  FLASH_3: "gemini-3-flash-preview",
+  PRO_3: "gemini-3-pro-preview",
 });
 
 export const DEFAULT_MODEL = MODELS.FLASH_2_5;
 
 export const MODEL_ALIASES = new Map([
-  ["flash",   MODELS.FLASH_2_5],
-  ["pro",     MODELS.PRO_2_5],
+  ["flash", MODELS.FLASH_2_5],
+  ["pro", MODELS.PRO_2_5],
   ["flash-3", MODELS.FLASH_3],
-  ["pro-3",   MODELS.PRO_3],
+  ["pro-3", MODELS.PRO_3],
 ]);
 
 export function resolveModel(input) {
