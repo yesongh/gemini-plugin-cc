@@ -68,12 +68,14 @@ export async function runTask(options = {}) {
 
   const removeUpdate = client.onUpdate((params) => {
     if (params?.sessionId !== sessionId) return;
-    if (params.type === "agent_message_chunk" && params.data?.text) {
-      chunks.push(params.data.text);
-      appendLogLine(logFile, params.data.text);
-      onProgress?.({ message: params.data.text, phase: "streaming" });
-    } else if (params.type === "tool_call") {
-      const toolName = params.data?.name ?? "tool";
+    const update = params.update;
+    if (!update) return;
+    if (update.sessionUpdate === "agent_message_chunk" && update.content?.text) {
+      chunks.push(update.content.text);
+      appendLogLine(logFile, update.content.text);
+      onProgress?.({ message: update.content.text, phase: "streaming" });
+    } else if (update.sessionUpdate === "tool_call") {
+      const toolName = update.name ?? "tool";
       appendLogLine(logFile, `[tool_call] ${toolName}`);
       onProgress?.({ message: `Running: ${toolName}`, phase: "tool_call" });
     }
@@ -103,7 +105,6 @@ export async function runTask(options = {}) {
     ]);
   } finally {
     removeUpdate();
-    try { await client.closeSession(sessionId); } catch {}
     await client.shutdown();
   }
 

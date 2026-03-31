@@ -75,7 +75,7 @@ rl.on("line", (line) => {
   try {
     switch (message.method) {
       case "initialize":
-        send({ id: message.id, result: { protocolVersion: "2025-04-15", capabilities: {}, serverInfo: { name: "fake-gemini", version: "0.33.0" } } });
+        send({ id: message.id, result: { protocolVersion: 1, agentCapabilities: {}, agentInfo: { name: "fake-gemini", version: "0.33.0" } } });
         break;
 
       case "session/new": {
@@ -96,7 +96,7 @@ rl.on("line", (line) => {
         fs.writeFileSync(STATE_PATH, JSON.stringify(st, null, 2));
         send({ id: message.id, result: { sessionId } });
         if (BEHAVIOR === "session-load") {
-          send({ method: "session/update", params: { sessionId, type: "agent_message_chunk", data: { text: "Resuming from history." } } });
+          send({ method: "session/update", params: { sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "Resuming from history." } } } });
         }
         break;
       }
@@ -121,8 +121,8 @@ rl.on("line", (line) => {
 
       case "session/prompt": {
         const sessionId = message.params && message.params.sessionId;
-        const turns = (message.params && message.params.turns) || [];
-        const text = (turns[0] && turns[0].parts && turns[0].parts[0] && turns[0].parts[0].text) || null;
+        const promptBlocks = (message.params && message.params.prompt) || [];
+        const text = (promptBlocks[0] && promptBlocks[0].text) || null;
         st.prompts = st.prompts || [];
         st.prompts.push({ sessionId, text });
         fs.writeFileSync(STATE_PATH, JSON.stringify(st, null, 2));
@@ -157,7 +157,7 @@ rl.on("line", (line) => {
               return;
             }
             rl.removeListener("line", onPermissionResponse);
-            send({ method: "session/update", params: { sessionId, type: "agent_message_chunk", data: { text: "Task complete." } } });
+            send({ method: "session/update", params: { sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "Task complete." } } } });
             send({ id: message.id, result: { stopReason: "end_turn" } });
           };
           rl.on("line", onPermissionResponse);
@@ -166,13 +166,13 @@ rl.on("line", (line) => {
 
         if (BEHAVIOR === "review-ok" || BEHAVIOR === "session-load") {
           const reviewJson = JSON.stringify({ verdict: "no-issues", summary: "No issues found.", findings: [], next_steps: [] });
-          send({ method: "session/update", params: { sessionId, type: "agent_message_chunk", data: { text: reviewJson } } });
+          send({ method: "session/update", params: { sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: reviewJson } } } });
           send({ id: message.id, result: { stopReason: "end_turn" } });
           break;
         }
 
         // Default: task-ok
-        send({ method: "session/update", params: { sessionId, type: "agent_message_chunk", data: { text: "Task complete." } } });
+        send({ method: "session/update", params: { sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "Task complete." } } } });
         send({ id: message.id, result: { stopReason: "end_turn" } });
         break;
       }

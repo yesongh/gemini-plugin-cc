@@ -110,8 +110,9 @@ export class AcpClient {
 
   async initialize() {
     return this.#request("initialize", {
+      protocolVersion: 1,
       clientInfo: { name: "gemini-companion", version: "1.0.0" },
-      capabilities: {}
+      clientCapabilities: {}
     });
   }
 
@@ -126,7 +127,7 @@ export class AcpClient {
   async prompt(sessionId, parts) {
     return this.#request("session/prompt", {
       sessionId,
-      turns: [{ role: "user", parts }]
+      prompt: parts.map(p => ({ type: "text", text: p.text }))
     });
   }
 
@@ -144,10 +145,6 @@ export class AcpClient {
 
   async listSessions(cwd) {
     return this.#request("session/list", { cwd });
-  }
-
-  async closeSession(sessionId) {
-    return this.#request("session/close", { sessionId });
   }
 
   async shutdown(opts = {}) {

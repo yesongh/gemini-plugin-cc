@@ -24,21 +24,33 @@ This plugin is for Claude Code users who want an easy way to start using Gemini 
 
 ## Install
 
-Add the marketplace in Claude Code:
+### Local development
+
+Load the plugin for a single session without installing:
+
+```bash
+claude --plugin-dir ./plugins/gemini
+```
+
+To install it permanently for this project, run the setup script once:
+
+```bash
+node scripts/add-local-plugin.mjs
+```
+
+Then reload plugins in Claude Code:
+
+```bash
+/reload-plugins
+```
+
+### From a marketplace
+
+Once published to a GitHub marketplace, install with:
 
 ```bash
 /plugin marketplace add your-org/gemini-plugin-cc
-```
-
-Install the plugin:
-
-```bash
 /plugin install gemini@your-org-gemini
-```
-
-Reload plugins:
-
-```bash
 /reload-plugins
 ```
 

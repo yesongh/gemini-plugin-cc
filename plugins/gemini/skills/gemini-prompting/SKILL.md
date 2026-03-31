@@ -1,8 +1,7 @@
 ---
 name: gemini-prompting
-description: "Guide for writing effective prompts when delegating coding tasks to Gemini 2.5 Pro/Flash via the gemini CLI"
-argument-hint: "[task description or question about prompting Gemini]"
-allowed-tools: ["Bash(gemini:*)", "Read", "Glob", "Grep"]
+description: Internal guidance for composing Gemini 2.5 Pro/Flash prompts for coding, review, diagnosis, and research tasks inside the Gemini Claude Code plugin
+user-invocable: false
 ---
 
 # Gemini 2.5 Prompting Guide for Coding Tasks

@@ -1,13 +1,8 @@
 ---
-description: Cancel a running Gemini job
+description: Cancel an active background Gemini job in this repository
 argument-hint: '[job-id]'
+disable-model-invocation: true
 allowed-tools: Bash(node:*)
 ---
 
-Run:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/gemini-companion.mjs" cancel $ARGUMENTS
-```
-
-Present the output verbatim to the user.
+!`node "${CLAUDE_PLUGIN_ROOT}/scripts/gemini-companion.mjs" cancel $ARGUMENTS`
