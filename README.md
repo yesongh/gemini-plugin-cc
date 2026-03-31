@@ -2,9 +2,7 @@
 
 Use Gemini from inside Claude Code for code reviews or to delegate tasks to Gemini.
 
-Built on the shoulders of giants. This plugin is modeled directly after `openai/codex-plugin-cc`, adapted for the Gemini CLI.
-
-This plugin is for Claude Code users who want an easy way to start using Gemini from the workflow they already have.
+Based on [`openai/codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), adapted for the Gemini CLI. Adds `/gemini:task` for direct task delegation and uses Gemini's ACP protocol instead of Codex's app-server.
 
 ## What You Get
 
