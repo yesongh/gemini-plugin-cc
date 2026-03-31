@@ -1,6 +1,6 @@
 ---
 description: Delegate a task to Gemini CLI as a background or foreground job
-argument-hint: '[--background] [--resume-last|--resume <session-id>|--fresh] [--model <pro|flash|flash-lite>] [prompt]'
+argument-hint: '[--background] [--resume-last|--resume <session-id>|--fresh] [--model <pro|flash|pro-3|flash-3>] [prompt]'
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(node:*), Bash(git:*), AskUserQuestion
 ---

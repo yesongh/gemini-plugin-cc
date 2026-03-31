@@ -15,6 +15,7 @@ import {
   runReview,
   runTask,
 } from "./lib/gemini.mjs";
+import { resolveModel } from "./lib/models.mjs";
 import {
   collectReviewContext,
   ensureGitRepository,
@@ -56,11 +57,6 @@ import { resolveWorkspaceRoot } from "./lib/workspace.mjs";
 const ROOT_DIR = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const DEFAULT_STATUS_WAIT_TIMEOUT_MS = 240000;
 const DEFAULT_STATUS_POLL_INTERVAL_MS = 2000;
-const MODEL_ALIASES = new Map([
-  ["pro", "gemini-2.5-pro"],
-  ["flash", "gemini-2.5-flash"],
-  ["flash-lite", "gemini-2.5-flash-lite"],
-]);
 
 function printUsage() {
   console.log(
@@ -69,7 +65,7 @@ function printUsage() {
       "  node scripts/gemini-companion.mjs setup [--json]",
       "  node scripts/gemini-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>]",
       "  node scripts/gemini-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [focus text]",
-      "  node scripts/gemini-companion.mjs task [--background] [--write] [--model <model|pro|flash|flash-lite>] [prompt]",
+      "  node scripts/gemini-companion.mjs task [--background] [--write] [--model <model|pro|flash|pro-3|flash-3>] [prompt]",
       "  node scripts/gemini-companion.mjs status [job-id] [--all] [--json]",
       "  node scripts/gemini-companion.mjs result [job-id] [--json]",
       "  node scripts/gemini-companion.mjs cancel [job-id] [--json]",
@@ -89,16 +85,6 @@ function outputCommandResult(payload, rendered, asJson) {
   outputResult(asJson ? payload : rendered, asJson);
 }
 
-function normalizeRequestedModel(model) {
-  if (model == null) {
-    return null;
-  }
-  const normalized = String(model).trim();
-  if (!normalized) {
-    return null;
-  }
-  return MODEL_ALIASES.get(normalized.toLowerCase()) ?? normalized;
-}
 
 function normalizeArgv(argv) {
   if (argv.length === 1) {
@@ -391,7 +377,7 @@ async function handleTask(argv) {
 
   const cwd = resolveCommandCwd(options);
   const workspaceRoot = resolveCommandWorkspace(options);
-  const model = normalizeRequestedModel(options.model);
+  const model = resolveModel(options.model);
   const prompt = readTaskPrompt(cwd, options, positionals);
   const write = Boolean(options.write);
 
@@ -508,6 +494,7 @@ async function executeReviewRun(request) {
     ({ reviewResult, stopReason } = await runReview({
       cwd: request.cwd,
       reviewTarget: target,
+      model: request.model,
       logFile: request.logFile,
       onProgress: request.onProgress,
     }));
@@ -517,6 +504,7 @@ async function executeReviewRun(request) {
     ({ reviewResult, stopReason } = await runReview({
       cwd: request.cwd,
       reviewTarget: target,
+      model: request.model,
       focusText,
       systemPrompt: prompt,
       logFile: request.logFile,
@@ -592,7 +580,7 @@ async function handleReviewCommand(argv, config) {
         cwd,
         base: options.base,
         scope: options.scope,
-        model: options.model,
+        model: resolveModel(options.model),
         focusText,
         reviewName: config.reviewName,
         onProgress: progress,
@@ -797,8 +785,26 @@ main().then(
     process.exit(process.exitCode ?? 0);
   },
   (error) => {
-    const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`${message}\n`);
+    if (error?.code === "RATE_LIMITED" || error?.code === "MODEL_UNAVAILABLE") {
+      const lines = [
+        `# Gemini Error`,
+        ``,
+        `Model: ${error.model ?? "unknown"}`,
+        `Status: ${error.code === "RATE_LIMITED" ? "rate limited" : "unavailable"}`,
+        ``,
+        error.message,
+      ];
+      if (error.suggestions?.length > 0) {
+        lines.push(``, `Try instead:`);
+        for (const s of error.suggestions) {
+          lines.push(`- --model ${s}`);
+        }
+      }
+      process.stderr.write(`${lines.join("\n")}\n`);
+    } else {
+      const message = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`${message}\n`);
+    }
     process.exit(1);
   },
 );

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GeminiErrorOutput",
+  "description": "Structured error output for model and rate-limit failures.",
+  "type": "object",
+  "required": ["error", "code"],
+  "properties": {
+    "error": {
+      "type": "string",
+      "minLength": 1
+    },
+    "code": {
+      "type": "string",
+      "enum": ["RATE_LIMITED", "MODEL_UNAVAILABLE", "ACP_ERROR"]
+    },
+    "model": {
+      "type": "string"
+    },
+    "suggestions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
