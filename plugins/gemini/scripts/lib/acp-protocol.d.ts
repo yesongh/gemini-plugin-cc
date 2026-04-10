@@ -29,6 +29,7 @@ export interface NewSessionResult {
 export interface LoadSessionParams {
   sessionId: string;
   cwd: string;
+  mcpServers?: unknown[];
 }
 
 export interface ContentBlock {

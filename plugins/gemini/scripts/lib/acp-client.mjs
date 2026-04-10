@@ -138,8 +138,8 @@ export class AcpClient {
     return this.#request("session/new", { cwd, mcpServers });
   }
 
-  async loadSession(sessionId, cwd) {
-    return this.#request("session/load", { sessionId, cwd });
+  async loadSession(sessionId, cwd, mcpServers = []) {
+    return this.#request("session/load", { sessionId, cwd, mcpServers });
   }
 
   async prompt(sessionId, parts) {

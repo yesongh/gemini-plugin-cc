@@ -116,14 +116,33 @@ export async function createSession(opts = {}) {
 }
 
 /**
- * Load an existing session into a fresh ACP process (used for crash recovery).
+ * Load an existing session into a fresh ACP process and apply mode/model overrides.
  * Returns { client, sessionId }.
  * @param {string} sessionId
  * @param {object} [opts]
+ * @param {string} [opts.binary]
+ * @param {string} [opts.cwd]
+ * @param {Record<string,string>} [opts.env]
+ * @param {string} [opts.modeId="default"]
+ * @param {string} [opts.model]
  */
 export async function resumeSession(sessionId, opts = {}) {
   const client = await spawnAcpClient(opts);
   const cwd = opts.cwd ?? process.cwd();
-  await client.loadSession(sessionId, cwd);
+
+  try {
+    await client.loadSession(sessionId, cwd);
+
+    const modeId = opts.modeId ?? "default";
+    await client.setMode(sessionId, modeId);
+
+    if (opts.model) {
+      await client.setModel(sessionId, opts.model);
+    }
+  } catch (err) {
+    await client.shutdown();
+    throw err;
+  }
+
   return { client, sessionId };
 }

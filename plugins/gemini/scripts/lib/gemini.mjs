@@ -67,6 +67,7 @@ export async function runTask(options = {}) {
   if (resumeSessionId) {
     ({ client, sessionId } = await resumeSession(resumeSessionId, {
       cwd,
+      modeId,
       model,
       env,
     }));
