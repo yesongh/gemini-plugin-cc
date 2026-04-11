@@ -2,7 +2,7 @@
 description: Delegate investigation, an explicit fix request, or follow-up rescue work to the Gemini rescue subagent
 argument-hint: "[--background|--wait] [--resume|--fresh] [--model <pro|flash|flash-lite>] [what Gemini should investigate, solve, or continue]"
 context: fork
-allowed-tools: Bash(node:*)
+allowed-tools: Bash(node:*), AskUserQuestion
 ---
 
 Route this request to the `gemini:gemini-rescue` subagent.
@@ -47,13 +47,10 @@ Operating rules:
 - If the helper reports that Gemini is missing or unauthenticated, stop and tell the user to run `/gemini:setup`.
 - If the user did not supply a request, check for a saved review from `/gemini:review` or `/gemini:adversarial-review`:
 ```bash
-node -e "const {execSync:x}=require('child_process'),os=require('os'),fs=require('fs'),c=require('crypto');let t;try{t=x('git rev-parse --show-toplevel',{encoding:'utf8'}).trim()}catch(e){t=null};const h=t?c.createHash('md5').update(t).digest('hex'):'global';const p=os.homedir()+'/.gemini-plugin/last-review-'+h+'.md';console.log(fs.existsSync(p)?'LAST_REVIEW_AVAILABLE':'NO_LAST_REVIEW');"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/gemini-companion.mjs" last-review --json
 ```
-  - If `LAST_REVIEW_AVAILABLE`: use `AskUserQuestion` once with two options:
-    - `Fix issues from last review (Recommended)` — prepend the saved review content as context for the rescue task
+  - Parse the JSON output. If `available: true`: use `AskUserQuestion` once with two options:
+    - `Fix issues from last review (Recommended)` — use the `content` field from the JSON as context for the rescue task
     - `Describe a new task` — ask what Gemini should investigate or fix
-  - If the user chooses to fix from last review, read the review file with node and include it verbatim prefixed with: "The following issues were found in a prior Gemini review. Please fix them:\n\n"
-```bash
-node -e "const {execSync:x}=require('child_process'),os=require('os'),fs=require('fs'),c=require('crypto');let t;try{t=x('git rev-parse --show-toplevel',{encoding:'utf8'}).trim()}catch(e){t=null};const h=t?c.createHash('md5').update(t).digest('hex'):'global';process.stdout.write(fs.readFileSync(os.homedir()+'/.gemini-plugin/last-review-'+h+'.md','utf8'));"
-```
-  - If `NO_LAST_REVIEW`: ask what Gemini should investigate or fix.
+  - If the user chooses to fix from last review, include the review content verbatim prefixed with: "The following issues were found in a prior Gemini review. Please fix them:\n\n"
+  - If `available: false`: ask what Gemini should investigate or fix.
