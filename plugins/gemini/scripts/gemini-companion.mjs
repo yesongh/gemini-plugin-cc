@@ -43,6 +43,7 @@ import {
   generateJobId,
   getConfig,
   listJobs,
+  resolveStateDir,
   upsertJob,
   writeJobFile,
 } from "./lib/state.mjs";
@@ -75,6 +76,7 @@ function printUsage() {
       "  node scripts/gemini-companion.mjs status [job-id] [--all] [--json]",
       "  node scripts/gemini-companion.mjs result [job-id] [--json]",
       "  node scripts/gemini-companion.mjs cancel [job-id] [--json]",
+      "  node scripts/gemini-companion.mjs last-review [--json] [--cwd <dir>]",
     ].join("\n"),
   );
 }
@@ -541,6 +543,48 @@ async function handleTaskWorker(argv) {
   );
 }
 
+// --- Last-review persistence ---
+
+function resolveLastReviewPath(workspaceRoot) {
+  return path.join(resolveStateDir(workspaceRoot), "last-review.md");
+}
+
+function saveLastReview(workspaceRoot, content) {
+  try {
+    const dir = resolveStateDir(workspaceRoot);
+    fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+    fs.writeFileSync(resolveLastReviewPath(workspaceRoot), content, {
+      encoding: "utf8",
+      mode: 0o600,
+    });
+  } catch {
+    // best-effort: save failure must not block review output
+  }
+}
+
+async function handleLastReview(argv) {
+  const { options } = parseCommandInput(argv, {
+    valueOptions: ["cwd"],
+    booleanOptions: ["json"],
+  });
+  const workspaceRoot = resolveCommandWorkspace(options);
+  let content = null;
+  try {
+    content = fs.readFileSync(resolveLastReviewPath(workspaceRoot), "utf8");
+  } catch {
+    // missing or unreadable file is treated as "not available"
+  }
+  const available = content !== null;
+  if (options.json) {
+    outputResult(
+      available ? { available: true, content } : { available: false },
+      true,
+    );
+  } else if (available) {
+    process.stdout.write(content);
+  }
+}
+
 // --- Review ---
 
 function buildAdversarialReviewPrompt(context, focusText) {
@@ -642,7 +686,7 @@ async function handleReviewCommand(argv, config) {
     summary: metadata.summary,
   });
 
-  await runForegroundCommand(
+  const execution = await runForegroundCommand(
     job,
     (progress) =>
       executeReviewRun({
@@ -656,6 +700,9 @@ async function handleReviewCommand(argv, config) {
       }),
     { json: options.json },
   );
+  if (execution.exitStatus === 0) {
+    saveLastReview(workspaceRoot, execution.rendered);
+  }
 }
 
 async function handleReview(argv) {
@@ -846,6 +893,9 @@ async function main() {
       break;
     case "cancel":
       await handleCancel(argv);
+      break;
+    case "last-review":
+      await handleLastReview(argv);
       break;
     default:
       throw new Error(`Unknown subcommand: ${subcommand}`);

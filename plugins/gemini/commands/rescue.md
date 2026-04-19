@@ -2,7 +2,7 @@
 description: Delegate investigation, an explicit fix request, or follow-up rescue work to the Gemini rescue subagent
 argument-hint: "[--background|--wait] [--resume|--fresh] [--model <pro|flash|flash-lite>] [what Gemini should investigate, solve, or continue]"
 context: fork
-allowed-tools: Bash(node:*)
+allowed-tools: Bash(node:*), AskUserQuestion
 ---
 
 Route this request to the `gemini:gemini-rescue` subagent.
@@ -45,4 +45,12 @@ Operating rules:
 - Leave model unset unless the user explicitly asks for one. If they ask for `pro`, map it to `gemini-2.5-pro`. If they ask for `flash`, map it to `gemini-2.5-flash`. If they ask for `flash-lite`, map it to `gemini-2.5-flash-lite`.
 - Leave `--resume` and `--fresh` in the forwarded request. The subagent handles that routing when it builds the `task` command.
 - If the helper reports that Gemini is missing or unauthenticated, stop and tell the user to run `/gemini:setup`.
-- If the user did not supply a request, ask what Gemini should investigate or fix.
+- If the user did not supply a request, check for a saved review from `/gemini:review` or `/gemini:adversarial-review`:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/gemini-companion.mjs" last-review --json
+```
+  - Parse the JSON output. If `available: true`: use `AskUserQuestion` once with two options:
+    - `Fix issues from last review (Recommended)` — use the `content` field from the JSON as context for the rescue task
+    - `Describe a new task` — ask what Gemini should investigate or fix
+  - If the user chooses to fix from last review, include the review content verbatim prefixed with: "The following issues were found in a prior Gemini review. Please fix them:\n\n"
+  - If `available: false`: ask what Gemini should investigate or fix.
