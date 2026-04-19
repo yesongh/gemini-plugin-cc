@@ -209,7 +209,7 @@ function buildReviewPrompt(reviewTarget, systemPrompt, focusText) {
     parts.push(`\n\nAdditional focus: ${focusText}`);
   }
   parts.push(
-    `\n\nRespond with ONLY valid JSON matching this schema — no prose, no markdown fences:\n{"verdict":"no-issues"|"needs-attention"|"no-ship","summary":"...","findings":[{"severity":"critical|high|medium|low","title":"...","body":"...","file":"...","line_start":N,"recommendation":"..."}],"next_steps":["..."]}`,
+    `\n\nRespond with ONLY valid JSON matching this schema — no prose, no markdown fences:\n{"verdict":"no-issues"|"needs-attention"|"no-ship","summary":"...","findings":[{"severity":"critical|high|medium|low","title":"...","body":"...","file":"...","line_start":N,"line_end":N,"recommendation":"..."}],"next_steps":["..."]}`,
   );
   return parts.join("");
 }
