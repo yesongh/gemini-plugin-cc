@@ -7,11 +7,25 @@ const readJson = (rootUrl, file) =>
 const writeJson = (rootUrl, file, data) =>
   writeFileSync(new URL(file, rootUrl), `${JSON.stringify(data, null, 2)}\n`);
 
-const getPath = (obj, path) => path.reduce((cursor, key) => cursor[key], obj);
-
-const setPath = (obj, path, value) => {
+const getPath = (obj, path) => {
   let cursor = obj;
-  for (let i = 0; i < path.length - 1; i++) cursor = cursor[path[i]];
+  for (const key of path) {
+    if (cursor == null) return undefined;
+    cursor = cursor[key];
+  }
+  return cursor;
+};
+
+const setPath = (obj, path, value, file) => {
+  let cursor = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    if (cursor == null || cursor[path[i]] == null) {
+      throw new Error(
+        `Cannot set ${path.join(".")} in ${file}: missing ${path.slice(0, i + 1).join(".")}`,
+      );
+    }
+    cursor = cursor[path[i]];
+  }
   cursor[path[path.length - 1]] = value;
 };
 
@@ -38,12 +52,20 @@ export function syncVersions(rootUrl, locations = LOCATIONS) {
     byFile.get(target.file).paths.push(target.path);
   }
 
+  let updated = 0;
   for (const [file, { data, paths }] of byFile) {
-    for (const path of paths) setPath(data, path, version);
-    writeJson(rootUrl, file, data);
+    let changed = false;
+    for (const path of paths) {
+      if (getPath(data, path) !== version) {
+        setPath(data, path, version, file);
+        updated++;
+        changed = true;
+      }
+    }
+    if (changed) writeJson(rootUrl, file, data);
   }
 
-  return { version, updated: targets.length };
+  return { version, updated };
 }
 
 export function checkVersions(rootUrl, locations = LOCATIONS) {

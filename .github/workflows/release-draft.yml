@@ -71,23 +71,32 @@ jobs:
             --description "Release PR" \
             --force
 
-      - name: Create release PR
+      - name: Create or update release PR
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PAT }}
           VERSION: ${{ steps.bump.outputs.version }}
         run: |
           BRANCH="release/v${VERSION}"
-          git checkout -b "$BRANCH"
+          git checkout -B "$BRANCH"
           git add CHANGELOG.md package.json \
             .claude-plugin/marketplace.json \
             plugins/gemini/.claude-plugin/plugin.json
           git commit -m "chore(release): v${VERSION}"
-          git push origin "$BRANCH"
+          git push --force-with-lease origin "$BRANCH"
 
           node scripts/extract-latest-changelog.mjs > .pr-body.md
-          gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "chore(release): v${VERSION}" \
-            --label release \
-            --body-file .pr-body.md
+
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr edit "$EXISTING_PR" \
+              --title "chore(release): v${VERSION}" \
+              --add-label release \
+              --body-file .pr-body.md
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore(release): v${VERSION}" \
+              --label release \
+              --body-file .pr-body.md
+          fi

@@ -1,8 +1,15 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { extractLatest } from "./lib/changelog.mjs";
 
-const text = readFileSync(new URL("../CHANGELOG.md", import.meta.url), "utf8");
+const changelogUrl = new URL("../CHANGELOG.md", import.meta.url);
+
+if (!existsSync(changelogUrl)) {
+  console.error("CHANGELOG.md not found");
+  process.exit(1);
+}
+
+const text = readFileSync(changelogUrl, "utf8");
 const entry = extractLatest(text);
 
 if (!entry) {

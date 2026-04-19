@@ -10,7 +10,8 @@ if (!ok) {
     `Version drift detected. Canonical (${canonical.file}): ${canonical.version}`,
   );
   for (const v of drift) {
-    console.error(`  ${v.file} @ ${v.path.join(".")}: ${v.version}`);
+    const shown = v.version === undefined ? "(missing)" : v.version;
+    console.error(`  ${v.file} @ ${v.path.join(".")}: ${shown}`);
   }
   console.error(`Run 'pnpm run version:sync' to fix.`);
   process.exit(1);

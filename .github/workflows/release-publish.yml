@@ -30,15 +30,31 @@ jobs:
       - name: Tag merge commit
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         run: |
-          git tag "v${VERSION}"
-          git push origin "v${VERSION}"
+          git fetch --tags origin
+          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            EXISTING_SHA=$(git rev-list -n 1 "refs/tags/v${VERSION}")
+            if [ "$EXISTING_SHA" != "$MERGE_SHA" ]; then
+              echo "Tag v${VERSION} exists on ${EXISTING_SHA}, expected ${MERGE_SHA}."
+              exit 1
+            fi
+            echo "Tag v${VERSION} already exists on the expected commit."
+          else
+            git tag "v${VERSION}" "$MERGE_SHA"
+            git push origin "refs/tags/v${VERSION}"
+          fi
 
-      - name: Create GitHub Release
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          gh release create "v${VERSION}" \
-            --title "v${VERSION}" \
-            --notes-file release-body.md
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            gh release edit "v${VERSION}" \
+              --notes-file release-body.md
+          else
+            gh release create "v${VERSION}" \
+              --title "v${VERSION}" \
+              --notes-file release-body.md
+          fi

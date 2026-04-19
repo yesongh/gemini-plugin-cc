@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
@@ -60,20 +60,35 @@ test("syncVersions writes canonical version into all mirror locations", () => {
   assert.equal(marketplace.plugins[0].version, "2.0.0");
 });
 
-test("syncVersions is idempotent when all locations already agree", () => {
+test("syncVersions reports zero updates and skips writes when all locations already agree", () => {
   const { root, rootUrl } = seedFixture("1.5.0");
-  const before = readFileSync(
-    path.join(root, "plugins/gemini/.claude-plugin/plugin.json"),
-    "utf8",
+  const pluginPath = path.join(
+    root,
+    "plugins/gemini/.claude-plugin/plugin.json",
+  );
+  const beforeContent = readFileSync(pluginPath, "utf8");
+  const beforeMtime = statSync(pluginPath).mtimeMs;
+
+  const result = syncVersions(rootUrl);
+
+  assert.equal(result.updated, 0);
+  assert.equal(readFileSync(pluginPath, "utf8"), beforeContent);
+  assert.equal(statSync(pluginPath).mtimeMs, beforeMtime);
+});
+
+test("syncVersions throws a descriptive error when a target path is missing", () => {
+  const { root, rootUrl } = seedFixture("1.0.0");
+  const marketplacePath = path.join(root, ".claude-plugin/marketplace.json");
+  const broken = JSON.parse(readFileSync(marketplacePath, "utf8"));
+  delete broken.metadata;
+  writeFileSync(marketplacePath, `${JSON.stringify(broken, null, 2)}\n`);
+
+  writeFileSync(
+    path.join(root, "package.json"),
+    `${JSON.stringify({ name: "fixture", version: "2.0.0" }, null, 2)}\n`,
   );
 
-  syncVersions(rootUrl);
-  const after = readFileSync(
-    path.join(root, "plugins/gemini/.claude-plugin/plugin.json"),
-    "utf8",
-  );
-
-  assert.equal(before, after);
+  assert.throws(() => syncVersions(rootUrl), /marketplace\.json.*metadata/);
 });
 
 test("checkVersions returns ok when all versions agree", () => {
@@ -104,4 +119,22 @@ test("readAllVersions returns an entry for every configured location", () => {
   for (const entry of found) {
     assert.equal(entry.version, "1.2.3");
   }
+});
+
+test("checkVersions reports undefined for a location whose path is missing", () => {
+  const { root, rootUrl } = seedFixture("1.0.0");
+  const marketplacePath = path.join(root, ".claude-plugin/marketplace.json");
+  const broken = JSON.parse(readFileSync(marketplacePath, "utf8"));
+  delete broken.metadata;
+  writeFileSync(marketplacePath, `${JSON.stringify(broken, null, 2)}\n`);
+
+  const result = checkVersions(rootUrl);
+
+  assert.equal(result.ok, false);
+  const missing = result.drift.find(
+    (v) =>
+      v.file === ".claude-plugin/marketplace.json" && v.path[0] === "metadata",
+  );
+  assert.ok(missing, "expected drift entry for missing metadata path");
+  assert.equal(missing.version, undefined);
 });
