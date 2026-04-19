@@ -98,15 +98,7 @@ export async function runTask(options = {}) {
   if (modeId !== "plan") {
     client.onServerRequest("session/request_permission", async (p) => {
       appendLogLine(logFile, `[permission] approved: ${p?.description ?? ""}`);
-      // Gemini CLI >=0.36.0 expects nested { outcome: { outcome, optionId } } shape
-      // for session/request_permission responses. The CLI internally reads
-      // `output.outcome.outcome` (CoreToolCallStatus) and `output.outcome.optionId`
-      // (ToolConfirmationOutcome). Returning the old `{ approved: true }` shape
-      // causes every permission-gated tool call (write_file, run_shell_command,
-      // etc.) to crash with "Cannot read properties of undefined (reading 'outcome')".
-      // outcome.outcome must NOT equal CoreToolCallStatus "cancelled".
-      // optionId "proceed_once" approves this single tool call (matches the
-      // ToolConfirmationOutcome enum in @google/gemini-cli's bundle).
+      // Gemini CLI >=0.36.0 expects nested outcome shape for permission responses
       return { outcome: { outcome: "success", optionId: "proceed_once" } };
     });
   }
