@@ -99,7 +99,8 @@ export async function runTask(options = {}) {
   if (modeId !== "plan") {
     client.onServerRequest("session/request_permission", async (p) => {
       appendLogLine(logFile, `[permission] approved: ${p?.description ?? ""}`);
-      return { approved: true };
+      // Gemini CLI >=0.36.0 expects nested outcome shape for permission responses
+      return { outcome: { outcome: "success", optionId: "proceed_once" } };
     });
   }
 
